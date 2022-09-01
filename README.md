@@ -1,6 +1,6 @@
 # Bosun
 
-**TODO: Add description**
+A simple authorization package that uses protocols.
 
 ## Installation
 
