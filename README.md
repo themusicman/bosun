@@ -63,6 +63,17 @@ Bosun.permit?(%User{role: :guest}, :update, %Post{}) => false
 Bosun.permit?(%User{role: :guest}, :comment, %Post{title: "Another Guest Post"}, super_fan: true) => true
 ```
 
+You can define an `Any` implementation as a fallback policy
+
+```
+defimpl Bosun.Policy, for: Any do
+
+  def authorized?(_resource, _action, _subject, _options) do
+    false
+  end
+end
+```
+
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/bosun>.

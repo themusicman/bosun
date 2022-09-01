@@ -2,7 +2,7 @@ defmodule Bosun.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/themusicman/bosun"
-  @version "1.0.0"
+  @version "1.0.1"
 
   def project do
     [
