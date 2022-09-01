@@ -65,7 +65,7 @@ Bosun.permit?(%User{role: :guest}, :comment, %Post{title: "Another Guest Post"},
 
 You can define an `Any` implementation as a fallback policy
 
-```
+```elixir
 defimpl Bosun.Policy, for: Any do
 
   def authorized?(_resource, _action, _subject, _options) do
