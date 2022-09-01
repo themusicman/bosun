@@ -44,7 +44,7 @@ defmodule Bosun.MixProject do
     [
       extras: [
         "CHANGELOG.md",
-        "LICENSE.md": [title: "License"],
+        LICENSE: [title: "License"],
         "README.md": [title: "Readme"]
       ],
       main: "readme",
