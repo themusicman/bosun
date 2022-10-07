@@ -4,5 +4,5 @@ defprotocol Bosun.Policy do
   @doc """
   Evaluates permissions
   """
-  def authorized?(resource, action, subject, context, options)
+  def permitted?(resource, action, subject, context, options)
 end

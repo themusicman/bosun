@@ -14,13 +14,27 @@ defmodule Bosun.Context do
 
   Examples
 
+  iex> Bosun.Context.update(%Bosun.Context{}, true)
+  %Bosun.Context{permitted: true}
+
+  """
+  @spec update(Context.t(), boolean()) :: Context.t()
+  def update(context, permitted, reason \\ "") do
+    %Context{context | permitted: permitted, reason: reason}
+  end
+
+  @doc """
+  Set permitted to be true
+
+  Examples
+
   iex> Bosun.Context.permit(%Bosun.Context{})
   %Bosun.Context{permitted: true}
 
   """
   @spec permit(Context.t()) :: Context.t()
   def permit(context) do
-    %Context{context | permitted: true}
+    update(context, true)
   end
 
   @doc """
@@ -28,12 +42,12 @@ defmodule Bosun.Context do
 
   Examples
 
-  iex> Bosun.Context.reject(%Bosun.Context{permitted: true}, "Wrong user type")
+  iex> Bosun.Context.deny(%Bosun.Context{permitted: true}, "Wrong user type")
   %Bosun.Context{permitted: false, reason: "Wrong user type"}
 
   """
-  @spec reject(Context.t(), binary()) :: Context.t()
-  def reject(context, reason) do
-    %Context{context | permitted: false, reason: reason}
+  @spec deny(Context.t(), binary()) :: Context.t()
+  def deny(context, reason) do
+    update(context, false, reason)
   end
 end

@@ -7,7 +7,7 @@ defmodule Bosun do
   alias Bosun.Impermissible
 
   def permit?(subject, action, resource, options \\ []) do
-    context = Bosun.Policy.authorized?(resource, action, subject, %Context{}, options)
+    context = Bosun.Policy.permitted?(resource, action, subject, %Context{}, options)
 
     if context.permitted do
       true
@@ -17,7 +17,7 @@ defmodule Bosun do
   end
 
   def permit(subject, action, resource, options \\ []) do
-    context = Bosun.Policy.authorized?(resource, action, subject, %Context{}, options)
+    context = Bosun.Policy.permitted?(resource, action, subject, %Context{}, options)
 
     if context.permitted do
       {:ok, context}
@@ -27,7 +27,7 @@ defmodule Bosun do
   end
 
   def permit!(subject, action, resource, options \\ []) do
-    context = Bosun.Policy.authorized?(resource, action, subject, %Context{}, options)
+    context = Bosun.Policy.permitted?(resource, action, subject, %Context{}, options)
 
     if context.permitted do
       context

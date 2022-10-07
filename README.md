@@ -31,27 +31,27 @@ end
 defimpl Bosun.Policy, for: Post do
   alias Bosun.Context
 
-  def authorized?(_resource, _action, %User{role: :admin}, context, _options) do
+  def permitted?(_resource, _action, %User{role: :admin}, context, _options) do
     Context.permit(context)
   end
 
-  def authorized?(%Post{title: "A Guest Post"}, _action, %User{role: :guest}, context, _options) do
+  def permitted?(%Post{title: "A Guest Post"}, _action, %User{role: :guest}, context, _options) do
     Context.permit(context)
   end
 
-  def authorized?(_resource, :read, %User{role: :guest}, context, _options) do
+  def permitted?(_resource, :read, %User{role: :guest}, context, _options) do
     Context.permit(context)
   end
 
-  def authorized?(_resource, :comment, %User{role: :guest}, context, options) do
+  def permitted?(_resource, :comment, %User{role: :guest}, context, options) do
     %Context{context | permitted: options[:super_fan]}
   end
 
-  def authorized?(_resource, :update, %User{role: :guest}, context, _options) do
-    Context.reject(context, "User is a guest")
+  def permitted?(_resource, :update, %User{role: :guest}, context, _options) do
+    Context.deny(context, "User is a guest")
   end
 
-  def authorized?(_resource, _action, _user, context, _options) do
+  def permitted?(_resource, _action, _user, context, _options) do
     context
   end
 end
