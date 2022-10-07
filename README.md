@@ -29,28 +29,30 @@ defmodule Post do
 end
 
 defimpl Bosun.Policy, for: Post do
-  def authorized?(_resource, _action, %User{role: :admin}, _options) do
-    true
+  alias Bosun.Context
+
+  def authorized?(_resource, _action, %User{role: :admin}, context, _options) do
+    Context.permit(context)
   end
 
-  def authorized?(%Post{title: "A Guest Post"}, _action, %User{role: :guest}, _options) do
-    true
+  def authorized?(%Post{title: "A Guest Post"}, _action, %User{role: :guest}, context, _options) do
+    Context.permit(context)
   end
 
-  def authorized?(_resource, :read, %User{role: :guest}, _options) do
-    true
+  def authorized?(_resource, :read, %User{role: :guest}, context, _options) do
+    Context.permit(context)
   end
 
-  def authorized?(_resource, :comment, %User{role: :guest}, options) do
-    options[:super_fan]
+  def authorized?(_resource, :comment, %User{role: :guest}, context, options) do
+    %Context{context | permitted: options[:super_fan]}
   end
 
-  def authorized?(_resource, :update, %User{role: :guest}, _options) do
-    false
+  def authorized?(_resource, :update, %User{role: :guest}, context, _options) do
+    Context.reject(context, "User is a guest")
   end
 
-  def authorized?(_resource, _action, _user, _options) do
-    false
+  def authorized?(_resource, _action, _user, context, _options) do
+    context
   end
 end
 ```
@@ -58,18 +60,33 @@ end
 After defining your policy as seen above anywhere in your codebase you can call the `Bosun.permit?/3` or `Bosun.permit?/4` functions.
 
 ```elixir
-Bosun.permit?(%User{role: :guest}, :update, %Post{}) => false
+if Bosun.permit?(%User{role: :guest}, :comment, %Post{title: "Another Guest Post"}, super_fan: true) do
+  do_something()
+else
+  Logger.error("Boom!!!?!")
+end
 
-Bosun.permit?(%User{role: :guest}, :comment, %Post{title: "Another Guest Post"}, super_fan: true) => true
+case Bosun.permit(%User{role: :guest}, :comment, %Post{title: "Another Guest Post"}, super_fan: true) do
+  {:ok, _} -> do_something()
+  {:error, context} -> Logger.error(context.reason)
+end
+
+try do
+  Bosun.permit!(%User{role: :guest}, :comment, %Post{title: "Another Guest Post"}, super_fan: true)
+  do_something()
+rescue
+   e in Impermissible -> Logger.error(e.message)
+ end
 ```
 
 You can define an `Any` implementation as a fallback policy
 
 ```elixir
 defimpl Bosun.Policy, for: Any do
+  alias Bosun.Context
 
-  def authorized?(_resource, _action, _subject, _options) do
-    false
+  def authorized?(_resource, _action, _subject, context, _options) do
+    Context.reject(context, "Impermissible")
   end
 end
 ```
