@@ -1,5 +1,5 @@
 defmodule User do
-  defstruct role: :guest, username: ""
+  defstruct role: :guest, username: "", blocked: false
 end
 
 defmodule Post do
@@ -10,19 +10,32 @@ defimpl Bosun.Policy, for: Post do
   alias Bosun.Context
 
   def permitted?(_resource, _action, %User{role: :admin}, context, _options) do
-    Context.permit(context)
+    Context.permit(context, "Admins are allowed to do anything")
   end
 
   def permitted?(%Post{title: "A Guest Post"}, _action, %User{role: :guest}, context, _options) do
-    Context.permit(context)
+    Context.permit(context, "Guests are allowed to do stuff to guest posts")
   end
 
   def permitted?(_resource, :read, %User{role: :guest}, context, _options) do
-    Context.permit(context)
+    Context.permit(context, "Guests are allowed to read posts")
   end
 
-  def permitted?(_resource, :comment, %User{role: :guest}, context, options) do
-    %Context{context | permitted: options[:super_fan]}
+  def permitted?(_resource, :comment, %User{role: :guest} = user, context, options) do
+    if options[:super_fan] do
+      Context.permit(context, "Super fans are permitted")
+    else
+      Context.deny(context, "Guests that are not super fans are not permitted")
+    end
+    |> blocked_commenter?(user)
+  end
+
+  def blocked_commenter?(%Context{permitted: true} = context, %User{blocked: true}) do
+    Context.deny(context, "User blocked from commenting")
+  end
+
+  def blocked_commenter?(context, _user) do
+    context
   end
 
   def permitted?(_resource, :update, %User{role: :guest}, context, _options) do

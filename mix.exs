@@ -30,7 +30,7 @@ defmodule Bosun.MixProject do
 
   def application do
     [
-      extra_applications: []
+      extra_applications: [:logger]
     ]
   end
 

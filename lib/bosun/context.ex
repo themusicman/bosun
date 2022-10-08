@@ -7,20 +7,22 @@ defmodule Bosun.Context do
 
   @type t :: %Context{permitted: boolean(), reason: binary()}
 
-  defstruct permitted: false, reason: ""
+  defstruct permitted: false, reason: "", log: []
 
   @doc """
-  Set permitted to be true
+  Updates the context
 
   Examples
 
-  iex> Bosun.Context.update(%Bosun.Context{}, true)
-  %Bosun.Context{permitted: true}
+  iex> Bosun.Context.update(%Bosun.Context{}, true, "Reason")
+  %Bosun.Context{log: [{:permit, "Reason"}], permitted: true, reason: "Reason"}
 
   """
-  @spec update(Context.t(), boolean()) :: Context.t()
-  def update(context, permitted, reason \\ "") do
-    %Context{context | permitted: permitted, reason: reason}
+  @spec update(Context.t(), boolean(), binary()) :: Context.t()
+  def update(%Context{log: log} = context, permitted, reason)
+      when is_binary(reason) and is_boolean(permitted) do
+    reason_type = if permitted, do: :permit, else: :deny
+    %Context{context | permitted: permitted, reason: reason, log: [{reason_type, reason} | log]}
   end
 
   @doc """
@@ -28,13 +30,13 @@ defmodule Bosun.Context do
 
   Examples
 
-  iex> Bosun.Context.permit(%Bosun.Context{})
-  %Bosun.Context{permitted: true}
+  iex> Bosun.Context.permit(%Bosun.Context{}, "Reason it is permitted")
+  %Bosun.Context{log: [{:permit, "Reason it is permitted"}], permitted: true, reason: "Reason it is permitted"}
 
   """
-  @spec permit(Context.t()) :: Context.t()
-  def permit(context) do
-    update(context, true)
+  @spec permit(Context.t(), binary()) :: Context.t()
+  def permit(context, reason) when is_binary(reason) do
+    update(context, true, reason)
   end
 
   @doc """
@@ -43,11 +45,11 @@ defmodule Bosun.Context do
   Examples
 
   iex> Bosun.Context.deny(%Bosun.Context{permitted: true}, "Wrong user type")
-  %Bosun.Context{permitted: false, reason: "Wrong user type"}
+  %Bosun.Context{log: [{:deny, "Wrong user type"}], permitted: false, reason: "Wrong user type"}
 
   """
   @spec deny(Context.t(), binary()) :: Context.t()
-  def deny(context, reason) do
+  def deny(context, reason) when is_binary(reason) do
     update(context, false, reason)
   end
 end
