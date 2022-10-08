@@ -104,6 +104,15 @@ defimpl Bosun.Policy, for: Any do
 end
 ```
 
+## Configuration
+
+Here is the default library config.
+
+```elixir
+config :bosun,
+  debug: true
+```
+
 ## Todo
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
