@@ -98,8 +98,8 @@ You can define an `Any` implementation as a fallback policy
 defimpl Bosun.Policy, for: Any do
   alias Bosun.Context
 
-  def authorized?(_resource, _action, _subject, context, _options) do
-    Context.reject(context, "Impermissible")
+  def permitted?(_resource, _action, _subject, context, _options) do
+    Context.deny(context, "Impermissible")
   end
 end
 ```
