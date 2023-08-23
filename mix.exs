@@ -2,7 +2,7 @@ defmodule Bosun.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/themusicman/bosun"
-  @version "1.0.2"
+  @version "1.0.3"
 
   def project do
     [
@@ -40,7 +40,11 @@ defmodule Bosun.MixProject do
       {:ex_check, "~> 0.14.0", only: [:dev], runtime: false},
       {:credo, ">= 0.0.0", only: [:dev], runtime: false},
       {:dialyxir, ">= 0.0.0", only: [:dev], runtime: false},
-      {:doctor, ">= 0.0.0", only: [:dev], runtime: false}
+      {:doctor, ">= 0.0.0", only: [:dev], runtime: false},
+      {:grpc, "~> 0.5.0"},
+      {:protobuf, "~> 0.11"},
+      {:jason, "~> 1.1"},
+      {:mimic, "~> 1.7", only: :test}
     ]
   end
 

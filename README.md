@@ -31,6 +31,16 @@ end
 defimpl Bosun.Policy, for: Post do
   alias Bosun.Context
 
+  # Could also be defined on the fallback Any implementation
+  def resource_id(resource, _action, _subject, _context, _options) do
+    resource.id
+  end
+
+  # Could also be defined on the fallback Any implementation
+  def subject_id(_resource, _action, subject, _context, _options) do
+    subject.id
+  end
+
   def permitted?(_resource, _action, %User{role: :admin}, context, _options) do
     Context.permit(context, "Admins are allowed to do anything")
   end
@@ -113,8 +123,22 @@ config :bosun,
   debug: true
 ```
 
+### Integration with [EventRelay](https://github.com/eventrelay/eventrelay)
+
+One of the unique features of Bosun is it keeps a log of why something is permitted or denied. Bosun will also send this log to EventRelay for storage and searching. Using this integration gives you an audit log for free that can be used for compliance and debugging purposes.
+
+The `event_relay_token` can be obtained from EventRelay's API Key detail page for a producer API key.
+
+```elixir
+config :bosun, :send_to_event_relay, true
+config :bosun, :event_relay_host, "localhost"
+config :bosun, :event_relay_port, "50051"
+config :bosun, :event_relay_token, "..."
+```
+
 ## Todo
 
+- [x] integrate with EventRelay
 - [ ] improve documentation
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)

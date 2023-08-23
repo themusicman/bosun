@@ -9,6 +9,14 @@ end
 defimpl Bosun.Policy, for: Post do
   alias Bosun.Context
 
+  def resource_id(_resource, _action, _subject, _context, _options) do
+    1
+  end
+
+  def subject_id(_resource, _action, _subject, _context, _options) do
+    2
+  end
+
   def permitted?(_resource, _action, %User{role: :admin}, context, _options) do
     Context.permit(context, "Admins are allowed to do anything")
   end
@@ -50,8 +58,19 @@ end
 defmodule BosunTest do
   use ExUnit.Case
   doctest Bosun
+  use Mimic
 
   describe "permit?/4" do
+    setup do
+      on_exit(fn ->
+        Application.put_env(
+          :bosun,
+          :send_to_event_relay,
+          false
+        )
+      end)
+    end
+
     test "returns true if a subject is allowed to perform an action on a resource" do
       assert Bosun.permit?(%User{role: :admin}, :update, %Post{}) == true
     end
@@ -78,6 +97,31 @@ defmodule BosunTest do
       assert Bosun.permit?(%User{role: :guest}, :comment, %Post{title: "Another Guest Post"},
                super_fan: false
              ) == false
+    end
+
+    test "sends audit log to EventRelay if enabled" do
+      Application.put_env(
+        :bosun,
+        :send_to_event_relay,
+        true
+      )
+
+      subject = %User{role: :admin}
+      resource = %Post{}
+
+      expect(EventRelay, :log, fn args ->
+        assert args[:topic] == "bosun_audit_log"
+        assert args[:reference_key] == 1
+        assert args[:user_id] == 2
+        assert args[:data][:log] == [permit: "Admins are allowed to do anything"]
+        assert args[:data][:reason] == "Admins are allowed to do anything"
+        assert args[:data][:action] == :update
+        assert args[:data][:permitted] == true
+        assert args[:data][:resource] == resource
+        assert args[:data][:subject] == subject
+      end)
+
+      assert Bosun.permit?(subject, :update, resource) == true
     end
   end
 
