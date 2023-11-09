@@ -38,19 +38,19 @@ defimpl Bosun.Policy, for: Post do
     |> blocked_commenter?(user)
   end
 
-  def blocked_commenter?(%Context{permitted: true} = context, %User{blocked: true}) do
-    Context.deny(context, "User blocked from commenting")
-  end
-
-  def blocked_commenter?(context, _user) do
-    context
-  end
-
   def permitted?(_resource, :update, %User{role: :guest}, context, _options) do
     Context.deny(context, "User is a guest")
   end
 
   def permitted?(_resource, _action, _user, context, _options) do
+    context
+  end
+
+  def blocked_commenter?(%Context{permitted: true} = context, %User{blocked: true}) do
+    Context.deny(context, "User blocked from commenting")
+  end
+
+  def blocked_commenter?(context, _user) do
     context
   end
 end
@@ -111,9 +111,13 @@ defmodule BosunTest do
 
       expect(EventRelay, :log, fn args ->
         assert args[:topic] == "bosun_audit_log"
-        assert args[:reference_key] == 1
-        assert args[:user_id] == 2
-        assert args[:data][:log] == [permit: "Admins are allowed to do anything"]
+        assert args[:reference_key] == "1"
+        assert args[:user_id] == "2"
+
+        assert args[:data][:log] == [
+                 %{reason: "Admins are allowed to do anything", decision: :permit}
+               ]
+
         assert args[:data][:reason] == "Admins are allowed to do anything"
         assert args[:data][:action] == :update
         assert args[:data][:permitted] == true
